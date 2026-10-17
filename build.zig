@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const protobuf = @import("protobuf");
+
 // Although this function looks imperative, it does not perform the build
 // directly and instead it mutates the build graph (`b`) that will be then
 // executed by an external runner. The functions in `std.Build` implement a DSL
@@ -89,6 +91,14 @@ pub fn build(b: *std.Build) void {
     // by passing `--prefix` or `-p`.
     b.installArtifact(exe);
 
+    // first create a build for the dependency
+    const protobuf_dep = b.dependency("protobuf", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    // and lastly use the dependency as a module
+    exe.root_module.addImport("protobuf", protobuf_dep.module("protobuf"));
+
     // This creates a top level step. Top level steps have a name and can be
     // invoked by name when running `zig build` (e.g. `zig build run`).
     // This will evaluate the `run` step rather than the default step.
@@ -151,4 +161,20 @@ pub fn build(b: *std.Build) void {
     //
     // Lastly, the Zig build system is relatively simple and self-contained,
     // and reading its source code will allow you to master it.
+    const gen_proto = b.step("gen-proto", "generates zig files from protocol buffer definitions");
+
+    const protoc_step = protobuf.RunProtocStep.create(protobuf_dep.builder, target, .{
+        // out directory for the generated zig files
+        .destination_directory = b.path("src/proto"),
+        // Optional LazyPath to `protoc`. If null, zig-protobuf will download Google's release of
+        // the compiler.
+        // .protoc = b.path("protoc"),
+        .source_files = &.{ b.path("proto/fileformat.proto"), b.path("proto/osmformat.proto") },
+        .include_directories = &.{},
+        // Preserve unknown fields during binary decode/encode round trips.
+        // Defaults to false.
+        .preserve_unknown_fields = false,
+    });
+
+    gen_proto.dependOn(protoc_step.step);
 }

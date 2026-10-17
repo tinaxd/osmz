@@ -36,6 +36,10 @@
             .url = "git+https://github.com/tinaxd/zigMemMapper.git#9e672df8a1600884bd60bb6992c5dc2347328bd8",
             .hash = "MemMapper-0.2.1-cwAHKGsXAABCgvrYsWI1HrpD4m_We2eO_TEweLVowVxX",
         },
+        .protobuf = .{
+            .url = "git+https://github.com/Arwalk/zig-protobuf.git#e9e18c7664b8c950e5fc679259c968dd66ccc48b",
+            .hash = "protobuf-7.0.0-0e82aqFhNADVgEgPYPI7ddEg_dzhphBToYgkjQTrMKWv",
+        },
     },
     .paths = .{
         "build.zig",
